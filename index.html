@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello World</title>
+  </head>
+  <script src="./matter.min.js" type="text/javascript"></script>
+
+  <script src="https://pixijs.download/v5.3.3/pixi.min.js"></script>
+  <body>
+    <script type="text/javascript">
+      // module aliases
+      var Engine = Matter.Engine,
+        Render = Matter.Render,
+        World = Matter.World,
+        Bodies = Matter.Bodies,
+        Mouse = Matter.Mouse,
+        MouseConstraint = Matter.MouseConstraint,
+        Events = Matter.Events;
+
+      // create an engine
+      var engine = Engine.create();
+
+      // create a renderer
+      var render = Render.create({
+        element: document.body,
+        engine: engine,
+      });
+      let isMouseDown = false;
+      let dotType = 1;
+      const mouse = Mouse.create(render.canvas),
+        mouseConstraint = MouseConstraint.create(engine, {
+          mouse: mouse,
+          constraint: {
+            stiffness: 0.2,
+            render: {
+              visible: false,
+            },
+          },
+        });
+
+      World.add(engine.world, mouseConstraint);
+      Events.on(mouseConstraint, "mousedown", function (event) {
+        const mousePosition = event.mouse.position;
+        console.log(mousePosition);
+        createDot(mousePosition, dotType);
+        isMouseDown = true;
+      });
+      Events.on(mouseConstraint, "mousemove", function (event) {
+        const mousePosition = event.mouse.position;
+        if (isMouseDown) createDot(mousePosition, dotType);
+      });
+      Events.on(mouseConstraint, "mouseup", function (event) {
+        isMouseDown = false;
+      });
+      // create two boxes and a ground
+      var boxA = Bodies.rectangle(20, 532, 80, 80, { isStatic: true });
+      var boxB = Bodies.rectangle(760, 532, 80, 80, { isStatic: true });
+      var ground = Bodies.rectangle(100, 610, 1600, 60, { isStatic: true });
+
+      // add all of the bodies to the world
+      World.add(engine.world, [boxA, boxB, ground]);
+
+      // run the engine
+      Engine.run(engine);
+
+      // run the renderer
+      Render.run(render);
+
+      document.onkeydown = (event) => {
+        dotType = event.key;
+      };
+
+      function createDot(pos, dotType) {
+        const options = [
+          { density: 0.01, friction: 0.1, frictionAir: 0.01 },
+          { density: 0.01, friction: 0.1, frictionAir: 0.01 },
+          { density: 0.001, friction: 0.1, frictionAir: 0.1 },
+          { density: 0.1, friction: 0.052, frictionAir: 0.1 },
+        ];
+        const dot = Bodies.circle(pos.x, pos.y, 7, options[dotType]);
+        World.add(engine.world, [dot]);
+      }
+    </script>
+  </body>
+</html>
